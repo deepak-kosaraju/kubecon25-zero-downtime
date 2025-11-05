@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../envoy-retry-policy
+
+commonAnnotations:
+  app.zerodt.com/version: traffic-split-99-asg-1-k8s
+
+patches:
+- path: envoy-patch.yaml
+  target:
+    kind: ConfigMap
+    name: edge-envoy-config

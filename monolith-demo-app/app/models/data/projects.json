@@ -1,0 +1,130 @@
+{
+  "projects": [
+    {
+      "id": 2001,
+      "name": "Metro Plaza Office Tower",
+      "company_id": [1001,1002],
+      "status": "In Progress",
+      "start_date": "2024-01-15",
+      "end_date": "2025-12-31",
+      "budget": 150000000,
+      "location": "Springfield, IL",
+      "project_type": "Commercial Office",
+      "square_footage": 450000,
+      "floors": 25,
+      "architect": "DesignWorks Architecture",
+      "tasks": [
+        {"id": 1, "name": "Foundation & Excavation", "status": "Completed", "completion_date": "2024-03-15"},
+        {"id": 2, "name": "Steel Frame Construction", "status": "In Progress", "completion_date": null}
+      ]
+    },
+    {
+      "id": 2002,
+      "name": "Riverside Medical Complex",
+      "company_id": [1003,1004],
+      "status": "Planning",
+      "start_date": "2024-06-01",
+      "end_date": "2026-08-15",
+      "budget": 200000000,
+      "location": "Springfield, IL",
+      "project_type": "Healthcare",
+      "square_footage": 320000,
+      "floors": 8,
+      "architect": "HealthDesign Partners",
+      "tasks": [
+        {"id": 1, "name": "Site Preparation", "status": "Not Started", "completion_date": null},
+        {"id": 2, "name": "Permit Acquisition", "status": "In Progress", "completion_date": null}
+      ]
+    },
+    {
+      "id": 2003,
+      "name": "Springfield University Campus",
+      "company_id": [1005,1006],
+      "status": "Completed",
+      "start_date": "2022-09-01",
+      "end_date": "2024-05-31",
+      "budget": 75000000,
+      "location": "Springfield, IL",
+      "project_type": "Education",
+      "square_footage": 180000,
+      "floors": 4,
+      "architect": "EduBuild Architects",
+      "tasks": [
+        {"id": 1, "name": "Classroom Construction", "status": "Completed", "completion_date": "2024-03-20"},
+        {"id": 2, "name": "Laboratory Setup", "status": "Completed", "completion_date": "2024-04-15"}
+      ]
+    },
+    {
+      "id": 2004,
+      "name": "Riverside Shopping Center",
+      "company_id": [1007,1008],
+      "status": "In Progress",
+      "start_date": "2024-02-01",
+      "end_date": "2025-10-31",
+      "budget": 95000000,
+      "location": "Riverside, CA",
+      "project_type": "Retail",
+      "square_footage": 280000,
+      "floors": 2,
+      "architect": "RetailSpace Design",
+      "tasks": [
+        {"id": 1, "name": "Foundation Work", "status": "Completed", "completion_date": "2024-04-10"},
+        {"id": 2, "name": "Retail Space Buildout", "status": "In Progress", "completion_date": null}
+      ]
+    },
+    {
+      "id": 2005,
+      "name": "Riverside Tech Campus",
+      "company_id": [1009,1010],
+      "status": "Planning",
+      "start_date": "2024-08-01",
+      "end_date": "2026-12-31",
+      "budget": 180000000,
+      "location": "Riverside, CA",
+      "project_type": "Mixed-Use",
+      "square_footage": 520000,
+      "floors": 12,
+      "architect": "TechSpace Architects",
+      "tasks": [
+        {"id": 1, "name": "Site Survey", "status": "Not Started", "completion_date": null},
+        {"id": 2, "name": "Environmental Assessment", "status": "In Progress", "completion_date": null}
+      ]
+    },
+    {
+      "id": 2006,
+      "name": "Riverside Community Hospital",
+      "company_id": [1010,1001],
+      "status": "In Progress",
+      "start_date": "2023-11-01",
+      "end_date": "2025-06-30",
+      "budget": 220000000,
+      "location": "Riverside, CA",
+      "project_type": "Healthcare",
+      "square_footage": 380000,
+      "floors": 6,
+      "architect": "MediBuild Design",
+      "tasks": [
+        {"id": 1, "name": "Medical Gas Systems", "status": "Completed", "completion_date": "2024-01-15"},
+        {"id": 2, "name": "Clean Room Construction", "status": "In Progress", "completion_date": null}
+      ]
+    },
+    {
+      "id": 2007,
+      "name": "Riverside Elementary School",
+      "company_id": [1009,1001],
+      "status": "Completed",
+      "start_date": "2023-01-15",
+      "end_date": "2024-08-15",
+      "budget": 45000000,
+      "location": "Riverside, CA",
+      "project_type": "Education",
+      "square_footage": 95000,
+      "floors": 2,
+      "architect": "SchoolDesign Group",
+      "tasks": [
+        {"id": 1, "name": "Classroom Construction", "status": "Completed", "completion_date": "2024-06-20"},
+        {"id": 2, "name": "Playground Installation", "status": "Completed", "completion_date": "2024-07-30"}
+      ]
+    }
+  ]
+}

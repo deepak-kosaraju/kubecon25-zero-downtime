@@ -1,0 +1,78 @@
+- op: replace
+  path: /spec/strategy/canary/maxSurge
+  value: 20%
+- op: replace
+  path: /spec/strategy/canary/maxUnavailable
+  value: 20%
+# Signal Envoy to accept new connections. This is in case only `app` container was terminated and not the whole pod,
+# so we need to reverse the the /healthcheck/fail done in the preStop hook.
+- op: add
+  path: /spec/template/spec/containers/0/lifecycle
+  value:
+    postStart:
+      exec:
+        command:
+          - sh
+          - -c
+          - |
+            echo "App container started, signaling Envoy healthcheck OK"
+            curl -s -X POST "http://envoy:9901/healthcheck/ok"
+
+  # This is the `primary` preStop hook. # It's main purpose is to:
+  # 1. Trigger Envoy to fail healthchecks and signal client to close connections. (by adding `connection: close` header)
+  # 2. Wait for 2 seconds to allow Kubernetes to stop sending traffic to the pod. (give time for Ingress or ALB to react)
+  # 3. Wait for all active connections to drain and remain at zero for 5 consecutive seconds.
+  # 4. Now we are confident that K8S will not send any new requests to this pod we can safely signal the app to shutdown gracefully.
+  # 5. ... Kubernetes will then send SIGTERM to the `app` container (and all other containers will follow if it's the whole pod is being terminated).
+  # Note #1: We wait 2 seconds initially, then monitor connections until they remain at zero for 3 consecutive seconds to ensure stable draining.
+  # Note #2: `preStop` is triggered NOT only when the whole pod is terminated...but even the individual container is terminated (e.g due to failing liveness check), so always be cautious when changing/modifying *OTHER* containers  using `preStop` hooks.
+  #           For example, in this preStop we modify `envoy` container, so envoy will not accept new connections unless also `envoy` is restarted or the preStop hook flipping it ON again...
+  # ----
+  # ⚠️ Do not change these values unless you understand the shutdown sequence and the implications of changing it.
+- op: add
+  path: /spec/template/spec/containers/0/lifecycle/preStop
+  value:
+    exec:
+      command:
+        - sh
+        - -c
+        - |
+            # Color codes
+            BLUE='\033[0;34m'
+            RED='\033[0;31m'
+            ORANGE='\033[0;33m'
+            GREEN='\033[0;32m'
+            NC='\033[0m' # No Color
+            
+            # Get start time
+            start_time=$(date +%s)
+            start_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            
+            printf "${GREEN}[Kubernetes PreStop] START: Drain Sequence initiated at $start_timestamp${NC}\n" > /proc/1/fd/1 2>&1;
+            printf "${BLUE}[Kubernetes PreStop] Starting Drain Sequence.${NC}\n" > /proc/1/fd/1 2>&1;
+            printf "${RED}[Kubernetes PreStop] Signaling Envoy to Close Connections...${NC}\n" > /proc/1/fd/1 2>&1;
+            wget -qO - --post-data '' "http://localhost:9901/healthcheck/fail"; sleep 2;
+
+            printf "${BLUE}[Kubernetes PreStop] Waiting for Active Connections to Drain. (if any)${NC}\n" > /proc/1/fd/1 2>&1;
+            consecutive_zero_count=0;
+            while [ $consecutive_zero_count -lt 3 ]; do
+              active_connections=$(wget -qO- localhost:9901/stats | awk '/server.total_connections/ {print $2}');
+
+              if [ "$active_connections" = "0" ]; then
+                consecutive_zero_count=$((consecutive_zero_count + 1));
+                printf "${ORANGE}[Kubernetes PreStop] Zero connections for $consecutive_zero_count consecutive seconds${NC}\n" > /proc/1/fd/1 2>&1;
+              else
+                consecutive_zero_count=0;
+                printf "[Kubernetes PreStop] Active connections: $active_connections\n" > /proc/1/fd/1 2>&1;
+              fi;
+
+              sleep 1;
+            done;
+            
+            # Get end time and calculate duration
+            end_time=$(date +%s)
+            end_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            duration=$((end_time - start_time))
+            
+            printf "${BLUE}[Kubernetes PreStop] All Connections Drained... Signaling App to Shutdown${NC}\n" > /proc/1/fd/1 2>&1;
+            printf "${GREEN}[Kubernetes PreStop] END: Drain Sequence completed at $end_timestamp (Duration: ${duration}s)${NC}\n" > /proc/1/fd/1 2>&1;

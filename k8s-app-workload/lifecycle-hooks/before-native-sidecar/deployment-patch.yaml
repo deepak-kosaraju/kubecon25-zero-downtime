@@ -1,0 +1,230 @@
+# - op: replace
+#   path: /spec/replicas
+#   value: 4
+# - op: replace
+#   path: /spec/strategy/rollingUpdate/maxSurge
+#   value: 25%
+# - op: replace
+#   path: /spec/strategy/rollingUpdate/maxUnavailable
+#   value: 25%
+
+- op: remove
+  path: /spec/template/spec/initContainers
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: shutdown-orchestrator-volume
+    emptyDir:
+      sizeLimit: 5Mi
+
+- op: add
+  path: /spec/template/spec/containers/-
+  value:
+    name: envoy
+    image: "envoyproxy/envoy:v1.24.1"
+    command:
+      - "envoy"
+      - "--drain-time-s"  
+      - "60"
+      - "--drain-strategy"
+      - "immediate"
+      - "-c"
+      - "/etc/envoy/envoy.yaml"
+    resources:
+      limits:
+        memory: 150Mi
+      requests:
+        cpu: 50m
+        memory: 100Mi
+    ports:
+    - containerPort: 9901
+      name: envoy-admin
+      protocol: TCP
+    - containerPort: 9211
+      name: envoy
+      protocol: TCP
+    livenessProbe:
+      tcpSocket:
+        port: envoy-admin
+      periodSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: envoy-admin
+      periodSeconds: 5
+      failureThreshold: 3
+    startupProbe:
+      tcpSocket:
+        port: envoy-admin
+      initialDelaySeconds: 1
+      periodSeconds: 1
+      failureThreshold: 60
+    volumeMounts:
+      - mountPath: /etc/envoy/
+        name: envoy-config-volume
+      - mountPath: /etc/shutdown/
+        name: shutdown-orchestrator-volume
+    lifecycle:
+      preStop:
+        exec:
+          command:
+            - bash
+            - -c
+            - >
+              # Color codes
+              BLUE='\033[0;34m'
+              RED='\033[0;31m'
+              ORANGE='\033[0;33m'
+              GREEN='\033[0;32m'
+              NC='\033[0m' # No Color
+              
+              # Get start time
+              start_time=$(date +%s)
+              start_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+              
+              sleep 21;
+              if [[ ! -f /etc/shutdown/drain-complete ]]; then printf "${BLUE}[Kubernetes PreStop] Envoy Container Waiting for Drain Completion${NC}\n" > /proc/1/fd/1 2>&1; fi;
+              while [[ ! -f /etc/shutdown/drain-complete ]]; do sleep 1; done;
+
+              # Get end time and calculate duration
+              end_time=$(date +%s)
+              end_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+              duration=$((end_time - start_time))
+              
+              printf "${GREEN}[Kubernetes PreStop] END: Envoy Container Drain Sequence completed at $end_timestamp (Duration: ${duration}s)${NC}\n" > /proc/1/fd/1 2>&1;
+
+# This is the `primary` preStop hook. # It's main purpose is to:
+# 1. Trigger Envoy to drain all active connections and signal ALB to close connections.
+#   1.1 Envoy will stop accepting new ones after --drain-time-s (60) seconds.
+# 2. Wait for few (30) seconds to wait until Kubernetes stop sending traffic to the pod. (for AWS LBC to update LB Target Groups, etc)
+# 3. Wait for all active connections to drain.
+# 4. Signal other container's preStop hooks to continue and to cleanly shutdown.
+# 5. ... Kubernetes will then send SIGTERM to the container (and all other containers).
+# Note: - We wait a total of `30` seconds at All times to ensure Kubernetes will not send any new requests to this pod.
+#         The `30` second sleep must be <= `--drain-time-s` value in the envoy container.
+# ----
+# ⚠️ Do not change these values unless you understand the shutdown sequence and the implications of changing it.
+- op: add
+  path: /spec/template/spec/containers/-
+  value:
+    name: shutdown-orchestrator
+    image: "busybox:1.35"
+    command: [ /bin/sh, -c, "trap : TERM INT; sleep infinity & wait"]
+    resources:
+      limits:
+        memory: 10Mi
+      requests:
+        cpu: 3m
+        memory: 10Mi
+    volumeMounts:
+      - mountPath: /etc/shutdown/
+        name: shutdown-orchestrator-volume
+    lifecycle:
+        preStop:
+          exec:
+            command:
+              - sh
+              - -c
+              - >
+                # Color codes
+                BLUE='\033[0;34m'
+                RED='\033[0;31m'
+                ORANGE='\033[0;33m'
+                GREEN='\033[0;32m'
+                NC='\033[0m' # No Color
+                
+                # Get start time
+                start_time=$(date +%s)
+                start_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+                
+                printf "${GREEN}[Kubernetes PreStop] START: Drain Sequence initiated at $start_timestamp${NC}\n" > /proc/1/fd/1 2>&1;
+                printf "${BLUE}[Kubernetes PreStop] Starting Drain Sequence.${NC}\n" > /proc/1/fd/1 2>&1;
+                printf "${RED}[Kubernetes PreStop] Signaling Envoy to Stop Accepting Connections...${NC}\n" > /proc/1/fd/1 2>&1;
+                wget -qO - --post-data '' "http://envoy:9901/drain_listeners?graceful"; sleep 30;
+                
+                printf "${BLUE}[Kubernetes PreStop] Waiting for Active Connections to Drain. (if any)${NC}\n" > /proc/1/fd/1 2>&1;
+                while [[ $(wget -q -O- envoy:9901/stats | grep http.ingress_https.downstream_cx_active | awk '{print $2}') != 0 ]];
+                do sleep 1; done;
+                
+                printf "${BLUE}[Kubernetes PreStop] All Connections Drained... Signaling Sidecars to Shutdown${NC}\n" > /proc/1/fd/1 2>&1;
+                touch /etc/shutdown/drain-complete;
+
+                # Get end time and calculate duration
+                end_time=$(date +%s)
+                end_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+                duration=$((end_time - start_time))
+                
+                printf "${GREEN}[Kubernetes PreStop] END: Drain Sequence completed at $end_timestamp (Duration: ${duration}s)${NC}\n" > /proc/1/fd/1 2>&1;
+
+# Sleep 21 since the `shutdown-orchestrator` container will wait for 20 seconds for the connections to drain anyway. (Avoid logging unnecessarily)
+- op: add
+  path: /spec/template/spec/containers/0/lifecycle
+  value:
+    preStop:
+      exec:
+        command:
+          - bash
+          - -c
+          - >
+            # Color codes
+            BLUE='\033[0;34m'
+            RED='\033[0;31m'
+            ORANGE='\033[0;33m'
+            GREEN='\033[0;32m'
+            NC='\033[0m' # No Color
+            
+            # Get start time
+            start_time=$(date +%s)
+            start_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            
+            sleep 21;
+            if [[ ! -f /etc/shutdown/drain-complete ]]; then printf "${BLUE}[Kubernetes PreStop] App Container Waiting for Drain Completion${NC}\n" > /proc/1/fd/1 2>&1; fi;
+            while [[ ! -f /etc/shutdown/drain-complete ]]; do sleep 1; done;
+
+            # Get end time and calculate duration
+            end_time=$(date +%s)
+            end_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            duration=$((end_time - start_time))
+            
+            printf "${GREEN}[Kubernetes PreStop] END: App Container Drain Sequence completed at $end_timestamp (Duration: ${duration}s)${NC}\n" > /proc/1/fd/1 2>&1;
+
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts
+  value:
+    - name: shutdown-orchestrator-volume
+      mountPath: /etc/shutdown/
+# - op: add
+#   path: /spec/template/spec/containers/0/startupProbe
+#   value:
+#     tcpSocket:
+#       port: app
+#     initialDelaySeconds: 10
+#     periodSeconds: 1
+#     failureThreshold: 120
+#     successThreshold: 1
+
+# - op: add
+#   path: /spec/template/spec/containers/0/livenessProbe
+#   value:
+#     exec:
+#       command:
+#         - sh
+#         - -c
+#         - ps aux | grep -E '[f]astapi' -q
+#     failureThreshold: 5
+#     periodSeconds: 10
+
+# - op: add
+#   path: /spec/template/spec/containers/0/readinessProbe
+#   value:
+#     httpGet:
+#       path: /health
+#       port: app
+#       scheme: HTTP
+#     failureThreshold: 5
+#     periodSeconds: 3
+#     timeoutSeconds: 2
+
+
+

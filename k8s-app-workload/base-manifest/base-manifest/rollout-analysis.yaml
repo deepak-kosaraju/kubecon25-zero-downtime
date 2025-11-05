@@ -1,0 +1,64 @@
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: AnalysisTemplate
+  metadata:
+    name: k8s-web-pool-envoy-status-codes
+  spec:
+    args:
+    - name: id
+    - name: canary-hash
+    - name: stable-hash
+    measurementRetention:
+    - limit: 5
+      metricName: 4xx-error-ratio
+    - limit: 5
+      metricName: 5xx-error-ratio
+    metrics:
+    - failureLimit: 4
+      interval: 1m
+      name: 4xx-error-ratio
+      provider:
+        prometheus:
+          aggregator: sum
+          apiVersion: v2
+          formula: clamp_max(stable_ready_replicas, 1) * ((canary_errors / canary_total)
+            / (stable_errors / stable_total))
+          interval: 1m
+          queries:
+            canary_errors: |
+              sum:envoy.cluster.upstream_rq.count{envoy_cluster:k8s-web-pool AND kube_label_rollouts-pod-template-hash:{{args.canary-hash}} AND (envoy_response_code:4*)}.as_count()
+            canary_total: |
+              sum:envoy.cluster.upstream_rq.count{envoy_cluster:k8s-web-pool AND kube_label_rollouts-pod-template-hash:{{args.canary-hash}} AND envoy_response_code:* }.as_count()
+            stable_errors: |
+              sum:envoy.cluster.upstream_rq.count{envoy_cluster:k8s-web-pool AND kube_label_rollouts-pod-template-hash:{{args.stable-hash}} AND (envoy_response_code:4*)}.as_count()
+            stable_ready_replicas: |
+              sum:kubernetes_state.replicaset.replicas_ready{envoy_cluster:k8s-web-pool AND kube_replica_set:*{{args.stable-hash}}}.as_count()
+            stable_total: |
+              sum:envoy.cluster.upstream_rq.count{envoy_cluster:k8s-web-pool AND kube_label_rollouts-pod-template-hash:{{args.stable-hash}} AND envoy_response_code:* }.as_count()
+      successCondition: default(result, 1) < 4
+    - failureLimit: 4
+      initialDelay: 2m
+      interval: 1m
+      name: 5xx-error-ratio
+      provider:
+        datadog:
+          aggregator: sum
+          apiVersion: v2
+          formula: clamp_max(stable_ready_replicas, 1) * ((canary_errors / canary_total)
+            / (stable_errors / stable_total))
+          interval: 1m
+          queries:
+            canary_errors: |
+              sum:envoy.vhost.route.upstream.rq.count{envoy_cluster:k8s-web-pool AND kube_label_rollouts-pod-template-hash:{{args.canary-hash}} AND envoy_response_code IN(500,502,503,504)}.as_count()
+            canary_total: |
+              sum:envoy.vhost.route.upstream.rq.count{env AND envoy_route:web AND kube_label_rollouts-pod-template-hash:{{args.canary-hash}} AND envoy_response_code:* }.as_count()
+            stable_errors: |
+              sum:envoy.vhost.route.upstream.rq.count{app.procore.com/id:{{args.id}} AND envoy_route:web AND kube_label_rollouts-pod-template-hash:{{args.stable-hash}} AND envoy_response_code IN(500,502,503,504)}.as_count()
+            stable_ready_replicas: |
+              sum:kubernetes_state.replicaset.replicas_ready{app.procore.com/id:{{args.id}} AND kube_replica_set:*{{args.stable-hash}}}.as_count()
+            stable_total: |
+              sum:envoy.vhost.route.upstream.rq.count{app.procore.com/id:{{args.id}} AND envoy_route:web AND kube_label_rollouts-pod-template-hash:{{args.stable-hash}} AND envoy_response_code:* }.as_count()
+      successCondition: default(result, 1) < 4
+kind: List
+metadata: {}

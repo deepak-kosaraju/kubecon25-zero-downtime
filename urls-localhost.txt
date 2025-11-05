@@ -1,0 +1,69 @@
+# Health and basic endpoints
+http://localhost:8080/health
+
+# Company endpoints (high frequency - dashboard loads)
+http://localhost:8080/companies
+http://localhost:8080/companies
+http://localhost:8080/companies
+http://localhost:8080/companies
+http://localhost:8080/companies
+http://localhost:8080/companies/1001
+http://localhost:8080/companies/1002
+
+# Company projects (medium frequency - project selection)
+http://localhost:8080/companies/1001/projects
+http://localhost:8080/companies/1002/projects
+
+# Project endpoints (high frequency - project details)
+http://localhost:8080/projects
+http://localhost:8080/projects
+http://localhost:8080/projects
+http://localhost:8080/projects
+http://localhost:8080/projects
+http://localhost:8080/projects
+http://localhost:8080/projects/2001
+http://localhost:8080/projects/2002
+http://localhost:8080/projects/2003
+http://localhost:8080/projects/2004
+http://localhost:8080/projects/2005
+http://localhost:8080/projects/2006
+http://localhost:8080/projects/2007
+
+# Short sleep endpoints (likely to succeed quickly)
+http://localhost:8080/sleep/0.1
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.3
+http://localhost:8080/sleep/0.4
+
+# Medium sleep endpoints (may trigger retries)
+http://localhost:8080/sleep/0.5
+http://localhost:8080/sleep/0.5
+http://localhost:8080/sleep/0.6
+http://localhost:8080/sleep/0.6
+http://localhost:8080/sleep/0.9
+http://localhost:8080/sleep/0.9
+http://localhost:8080/sleep/0.8
+http://localhost:8080/sleep/0.8
+
+# Longer sleep endpoints (likely to trigger retries)
+http://localhost:8080/sleep/0.9
+http://localhost:8080/sleep/0.9
+http://localhost:8080/sleep/1.0
+http://localhost:8080/sleep/1.0
+http://localhost:8080/sleep/1.1
+http://localhost:8080/sleep/1.1
+http://localhost:8080/sleep/1.2
+http://localhost:8080/sleep/1.2
+
+# More Longer Sleep Endpoints (hold active connection longer - reports etc..)
+http://localhost:8080/sleep/15
+http://localhost:8080/sleep/10
+http://localhost:8080/sleep/5
+
+
+# Project filtering (realistic query parameters)
+http://localhost:8080/projects?company_id=1001
+http://localhost:8080/projects?company_id=1002
+
+# Error simulation (for testing error handling)
+# http://localhost:8080/exception

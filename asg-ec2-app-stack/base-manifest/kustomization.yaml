@@ -1,0 +1,26 @@
+
+resources: 
+- deployment.yaml
+- service.yaml
+
+namespace: default
+
+labels:
+- includeSelectors: true
+  includeTemplates: true
+  pairs:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/instance: asg
+
+commonAnnotations:
+  app.zerodt.com/component: web
+  app.zerodt.com/instance: asg
+  app.zerodt.com/version: v0.1.0
+
+namePrefix:
+  asg-
+
+configMapGenerator:
+- name: envoy-config
+  files:
+  - envoy.yaml

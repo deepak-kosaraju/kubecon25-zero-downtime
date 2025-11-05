@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubecon25-zero-downtime-demo
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: kube-prometheus-stack
+    release: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    heritage: {{ .Release.Service }}
+data:
+  kubecon25-zero-downtime-demo.json: |
+{{ .Files.Get "files/dashboards/kubecon25-zero-downtime-demo-dashboard.json" | indent 4 }}

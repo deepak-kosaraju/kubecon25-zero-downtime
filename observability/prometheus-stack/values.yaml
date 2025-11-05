@@ -1,0 +1,146 @@
+# Kube Prometheus Stack Values for Zero Downtime Migration Demo
+# Based on: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
+#
+# IMPORTANT: Since this is a wrapper chart with a dependency named "kube-prometheus-stack",
+# all values must be nested under the dependency name to be passed to the subchart.
+# This is a requirement of Helm's dependency value passing mechanism.
+
+# Global configuration (passed to dependency)
+kube-prometheus-stack:
+  global:
+    namespaceOverride: ""
+
+  # Prometheus configuration
+  prometheus:
+    service:
+      type: ClusterIP
+      # type: LoadBalancer
+      # externalTrafficPolicy: Local
+    prometheusSpec:
+      # Enable Prometheus to scrape metrics from all namespaces
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      
+      # Using PodMonitor resources for dynamic discovery instead of additionalScrapeConfigs
+
+      # Resource limits
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 100m
+        limits:
+          memory: 1Gi
+          cpu: 500m
+      
+      ## If specified, the pod's topology spread constraints.
+      # topologySpreadConstraints:
+        # - maxSkew: 1
+              
+      ## How long to retain metrics
+      retention: 6h
+
+      ## Interval between consecutive scrapes.
+      scrapeInterval: "15s"
+
+      ## Number of seconds to wait for target to respond before erroring
+      scrapeTimeout: "10s"
+
+      ## Number of retries to perform on failure.
+      scrapeRetries: 5
+
+      ## interval of evaluating metrics to generate alerts
+      evaluationInterval: "1m"
+
+  # Grafana configuration
+  grafana:
+    enabled: true
+    
+    # Admin credentials
+    adminPassword: "admin123"
+
+    service:
+      type: ClusterIP
+      # externalTrafficPolicy: Local
+
+    # Enable StatefulSet mode (required for persistence)
+    # Reference: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+    useStatefulSet: true
+    
+    # Enable persistence
+    # Note: Grafana persistence requires a PVC to be created
+    # Reference: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L413-L418
+    persistence:
+      enabled: true
+      size: 1Gi
+      # storageClassName: ""  # Use default storage class (optional)
+      # accessModes: ["ReadWriteOnce"]  # Default access mode (optional)
+      
+    # Fix security context for Kind clusters
+    securityContext:
+      runAsNonRoot: false
+      runAsUser: 0
+      fsGroup: 0
+    
+    defaultDashboardsEnabled: false
+    # Additional data sources
+    # additionalDataSources:
+    #   - name: 'envoy-routing'
+    #     type: 'prometheus'
+    #     url: 'http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090'
+    #     access: 'proxy'
+    #     isDefault: false
+        
+    # Dashboard providers
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+        - name: 'envoy'
+          orgId: 1
+          folder: 'Envoy'
+          type: file
+          disableDeletion: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/envoy
+            
+    # Dashboard configmaps
+    dashboardsConfigMaps:
+      envoy: "kubecon25-zero-downtime-demo"
+
+    # Resource limits
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+
+  # AlertManager configuration
+  alertmanager:
+    enabled: false
+    alertmanagerSpec:
+      # Resource limits
+      resources:
+        requests:
+          memory: 128Mi
+          cpu: 50m
+        limits:
+          memory: 256Mi
+          cpu: 100m
+
+  # Node Exporter
+  nodeExporter:
+    enabled: true
+
+  # Kube State Metrics
+  kubeStateMetrics:
+    enabled: true
+
+  # Service Monitor for our applications
+  serviceMonitor:
+    enabled: false
+    labels:
+      app: zerodt-demo

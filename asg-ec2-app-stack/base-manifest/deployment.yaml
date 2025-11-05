@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-pool
+spec:
+  replicas: 4
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 80%
+      maxUnavailable: 0
+  template:
+    spec:
+      initContainers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.34.6
+        restartPolicy: Always
+        ports:
+        - containerPort: 9211
+          name: envoy
+          protocol: TCP
+        - containerPort: 9901
+          name: envoy-admin
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: envoy-admin
+          initialDelaySeconds: 1
+          periodSeconds: 5
+          failureThreshold: 3
+        resources:
+          limits:
+            memory: 250Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /etc/envoy/
+          name: envoy-config-volume
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: WEB_CONCURRENCY
+          value: "2"
+        image: kosarajus/monolith:v0.1.7
+        imagePullPolicy: IfNotPresent
+        name: app
+        ports:
+        - containerPort: 8000
+          name: app
+          protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - ps aux | grep -E '[f]astapi' -q
+          failureThreshold: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+      hostAliases:
+      - hostnames:
+        - webapp
+        - envoy
+        ip: 127.0.0.1
+      # terminationGracePeriodSeconds: 1800 # we have higher value as these are considered as ASG pods
+      volumes:
+      - name: envoy-config-volume
+        configMap:
+          name: asg-envoy-config

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: kube-prometheus-stack
+description: Zero Downtime Migration Demo - Prometheus Stack
+version: 0.1.0
+appVersion: "v0.86.1"
+dependencies:
+- name: kube-prometheus-stack
+  version: "79.1.1"
+  repository: "https://prometheus-community.github.io/helm-charts"
