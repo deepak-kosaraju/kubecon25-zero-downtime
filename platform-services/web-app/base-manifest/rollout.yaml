@@ -1,0 +1,155 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web-global
+spec:
+  progressDeadlineSeconds: 1800
+  revisionHistoryLimit: 3
+  rollbackWindow:
+    revisions: 3
+  strategy:
+    canary:
+      canaryMetadata:
+        labels:
+          rollouts.zerodt.com/role: canary
+      stableMetadata:
+        labels:
+          rollouts.zerodt.com/role: stable
+      maxSurge: 50%
+      maxUnavailable: 20%
+      steps:
+        - setWeight: 25
+        - pause: { duration: 10 }
+        - setWeight: 50
+        - pause: { duration: 5 }
+        - setWeight: 75
+        - setWeight: 100
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - ondemand
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated-web
+        operator: Equal
+        value: "true"
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app.zerodt.com/component: web
+            app.zerodt.com/system: platform-service
+        maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+      initContainers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.34.6
+        restartPolicy: Always
+        ports:
+        - containerPort: 9211
+          name: envoy
+          protocol: TCP
+        - containerPort: 9901
+          name: envoy-admin
+          protocol: TCP
+        startupProbe:
+          tcpSocket:
+            port: envoy-admin
+          initialDelaySeconds: 1
+          periodSeconds: 1
+          failureThreshold: 60
+        # Incorrect implementation of liveness probes can lead to cascading failures. This results in restarting of container under high load. Liveness probes can be a powerful way to recover from application failures, but they should be used with caution. Liveness probes must be configured carefully to ensure that they truly indicate unrecoverable application failure, for example a deadlock.
+        livenessProbe:
+          tcpSocket:
+            port: envoy-admin
+          periodSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: envoy-admin
+            scheme: HTTP
+          periodSeconds: 5
+          failureThreshold: 3
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /etc/envoy/
+          name: envoy-config-volume
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: WEB_CONCURRENCY
+          value: "1"
+        image: kosarajus/monolith:v0.1.10
+        imagePullPolicy: IfNotPresent
+        name: app
+        ports:
+        - containerPort: 8000
+          name: app
+          protocol: TCP
+        startupProbe:
+          tcpSocket:
+            port: app
+          periodSeconds: 1
+          failureThreshold: 120
+          successThreshold: 1
+        # Incorrect implementation of liveness probes can lead to cascading failures. This results in restarting of container under high load. Liveness probes can be a powerful way to recover from application failures, but they should be used with caution. Liveness probes must be configured carefully to ensure that they truly indicate unrecoverable application failure, for example a deadlock.
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - ps aux | grep -E '[f]astapi' -q
+          failureThreshold: 5
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: app
+            scheme: HTTP
+          failureThreshold: 3
+          periodSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                echo "Sleeping for 30 seconds to allow the app to shutdown gracefully..." > /proc/1/fd/1 2>&1;
+                sleep 30
+        resources:
+          limits:
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      hostAliases:
+      - hostnames:
+        - webapp
+        - envoy
+        ip: 127.0.0.1
+      terminationGracePeriodSeconds: 600 # we have higher value for this due to nature of long running requests for certain parts of the application
+      volumes:
+      - name: envoy-config-volume
+        configMap:
+          name: core-web-global-envoy-config

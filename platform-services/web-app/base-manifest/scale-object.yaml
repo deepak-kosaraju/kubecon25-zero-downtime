@@ -1,0 +1,37 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: web-global
+  annotations:
+    # autoscaling.keda.sh/paused: "true"
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: core-web-global
+  minReplicaCount: 4
+  maxReplicaCount: 10
+  fallback:
+    failureThreshold: 3
+    replicas: 8
+    behavior: currentReplicasIfHigher
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 15
+          policies:
+            - type: Percent
+              value: 20
+              periodSeconds: 15
+            - type: Pods
+              value: 2
+              periodSeconds: 15
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      threshold: '1'
+      query: sum(avg_over_time(envoy_cluster_upstream_cx_active{envoy_cluster_name="core-web-global"}[1m]))
+    metricType: Value
+  

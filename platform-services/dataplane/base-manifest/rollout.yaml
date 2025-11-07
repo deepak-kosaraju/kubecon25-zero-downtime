@@ -1,0 +1,99 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: platform-service
+spec:
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 3
+  rollbackWindow:
+    revisions: 3
+  replicas: 4
+  strategy:
+    canary:
+      canaryMetadata:
+        labels:
+          rollouts.zerodt.com/role: canary
+      stableMetadata:
+        labels:
+          rollouts.zerodt.com/role: stable
+      maxSurge: 20%
+      maxUnavailable: 20%
+      steps:
+        - setWeight: 25
+        - pause: { duration: 10 }
+        - setWeight: 50
+        - pause: { duration: 5 }
+        - setWeight: 75
+        - setWeight: 100
+  template:
+    spec:
+      containers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.34.6
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 9901
+          name: envoy-admin
+          protocol: TCP
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 250Mi
+        volumeMounts:
+        - mountPath: /etc/envoy/
+          name: envoy-config-volume
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: envoy-admin
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: envoy-admin
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /ready
+            port: envoy-admin
+          initialDelaySeconds: 10
+          periodSeconds: 1
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  echo "[Kubernetes PreStop] Starting Drain Sequence." > /proc/1/fd/1 2>&1;
+                  echo "[Kubernetes PreStop] Signaling Envoy to Close Connections..." > /proc/1/fd/1 2>&1;
+                  curl -s -X POST "http://localhost:9901/healthcheck/fail"; sleep 5;
+                  echo "[Kubernetes PreStop] Waiting for Active Connections to Drain. (if any)" > /proc/1/fd/1 2>&1;
+                  consecutive_zero_count=0;
+                  while [ $consecutive_zero_count -lt 3 ]; do
+                    active_connections=$(curl -s localhost:9901/stats | awk '/server.total_connections/ {print $2}');
+                    if [ "$active_connections" = "0" ]; then
+                      consecutive_zero_count=$((consecutive_zero_count + 1));
+                      echo "[Kubernetes PreStop] Zero connections for $consecutive_zero_count consecutive seconds" > /proc/1/fd/1 2>&1;
+                    else
+                      consecutive_zero_count=0;
+                      echo "[Kubernetes PreStop] Active connections: $active_connections" > /proc/1/fd/1 2>&1;
+                    fi;
+                    sleep 1;
+                  done;
+                  echo "[Kubernetes PreStop] All Connections Drained... Signaling App to Shutdown" > /proc/1/fd/1 2>&1;
+                  curl -s -X POST "http://localhost:9901/healthcheck/ok";
+                  echo "[Kubernetes PreStop] App Shutdown Signal Sent" > /proc/1/fd/1 2>&1;
+                  sleep 5;
+                  echo "[Kubernetes PreStop] Done" > /proc/1/fd/1 2>&1;
+
+      terminationGracePeriodSeconds: 120
+      volumes:
+      - name: envoy-config-volume
+        configMap:
+          name: dataplane-envoy-config

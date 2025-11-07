@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configurations:
+  ## We can reference the file in the web or reference local file
+  # - https://argoproj.github.io/argo-rollouts/features/kustomize/rollout-transform-kustomize-v5.yaml
+  - rollout-transform-v5.yaml
+
+resources: 
+# - deployment.yaml
+- service.yaml
+- pdb.yaml
+- rollout.yaml
+- scale-object.yaml
+
+namespace: default
+
+labels:
+- includeSelectors: true
+  includeTemplates: true
+  pairs:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/system: platform-service
+
+commonAnnotations:
+  app.zerodt.com/component: web
+  app.zerodt.com/system: platform-service
+  app.zerodt.com/id: core-web
+  app.zerodt.com/version: base
+
+namePrefix:
+  core-
+
+configMapGenerator:
+- name: web-global-envoy-config  
+  files:
+  - envoy.yaml

@@ -8,7 +8,9 @@ from app.models.project import Project
 
 class DataService:
     def __init__(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+        self.data_dir = os.path.join(
+            os.path.dirname(__file__), '..', 'models', 'data'
+        )
         self.companies_file = os.path.join(self.data_dir, 'companies.json')
         self.projects_file = os.path.join(self.data_dir, 'projects.json')
     

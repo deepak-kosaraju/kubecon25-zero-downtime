@@ -81,7 +81,7 @@ def get_pod_name():
 
 
 def get_node_name():
-    return os.getenv("NODE_NAME")
+    return os.getenv("POD_NODE_NAME")
 
 
 def get_all_status_code_details():

@@ -1,0 +1,110 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: zero-downtime-gateway
+  namespace: default
+spec:
+  gatewayClassName: cloud-provider-kind
+  listeners:
+    - protocol: HTTP
+      port: 80
+      name: core-web-global
+      allowedRoutes:
+        namespaces:
+          from: All  # Allow cross-namespace routing
+    - protocol: HTTP
+      port: 9901
+      name: core-web-global-envoy
+      allowedRoutes:
+        namespaces:
+          from: All  # Allow cross-namespace routing
+    - protocol: HTTP
+      port: 3000
+      name: prometheus-grafana
+      allowedRoutes:
+        namespaces:
+          from: All  # Allow cross-namespace routing
+    - protocol: HTTP
+      port: 9090
+      name: prometheus-kube-prometheus-prometheus
+      allowedRoutes:
+        namespaces:
+          from: All  # Allow cross-namespace routing
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: core-web-global-app
+  namespace: default
+spec:
+  parentRefs:
+  - name: zero-downtime-gateway
+    sectionName: core-web-global
+  rules:
+  # - name: main-app-route
+  - timeouts:
+        request: 60s
+        backendRequest: 60s
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    backendRefs:
+    - name: core-web-global
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: prometheus-grafana-route
+  namespace: monitoring
+spec:
+  parentRefs:
+  - name: zero-downtime-gateway
+    sectionName: prometheus-grafana
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: prometheus-grafana
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: prometheus-kube-prometheus-prometheus-route
+  namespace: monitoring
+spec:
+  parentRefs:
+  - name: zero-downtime-gateway
+    sectionName: prometheus-kube-prometheus-prometheus
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: prometheus-kube-prometheus-prometheus
+      port: 9090
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: core-web-global-envoy
+  namespace: default
+spec:
+  parentRefs:
+  - name: zero-downtime-gateway
+    sectionName: core-web-global-envoy
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: core-web-global
+      port: 9901
+
+    

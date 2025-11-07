@@ -7,9 +7,9 @@ set -e
 
 echo "🚀 Deploying Observability Stack..."
 
-# Create monitoring namespace
+# Create monitoring namespace (idempotent - won't fail if already exists)
 echo "📦 Creating monitoring namespace..."
-kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+kubectl get namespace monitoring || kubectl create namespace monitoring
 
 # Add Prometheus Community Helm repository
 echo "📥 Adding Prometheus Community Helm repository..."
@@ -35,7 +35,7 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=grafana -n moni
 
 # Apply PodMonitor resources
 echo "📊 Applying PodMonitor resources..."
-kubectl apply -f envoy-metrics/
+kubectl apply -f podmonitors/
 
 # Wait for PodMonitor resources to be created
 echo "⏳ Waiting for PodMonitor resources to be created..."
@@ -81,15 +81,11 @@ echo ""
 echo "🔗 Access Information:"
 echo "  Prometheus: kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090"
 echo "  Grafana:    kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80"
-echo "  Grafana Login: admin / prom-operator"
+echo "  Grafana Login: admin / admin123"
 echo ""
 echo "📈 Envoy Metrics will be available at:"
 echo "  - Prometheus Targets: http://localhost:9090/targets"
-echo "  - Look for 'envoy-routing-service' and 'envoy-app-service' targets"
-echo ""
-echo "📊 Grafana Dashboards:"
-echo "  - Envoy Retry & Response Code SLI Dashboard"
-echo "  - Access at: http://localhost:3000"
+echo "  - Look for 'web-envoy-metrics' and 'routing-envoy-metrics' targets"
 echo ""
 echo "🔧 Verification Commands:"
 echo "  # Check PodMonitor resources:"
@@ -99,6 +95,6 @@ echo "  # Check Prometheus targets:"
 echo "  kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090 &"
 echo "  curl http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.labels.job | contains(\"envoy\"))'"
 echo ""
-echo "  # Check Grafana dashboards:"
-echo "  kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80 &"
-echo "  # Then visit http://localhost:3000 and look for 'Envoy Retry & Response Code SLI Dashboard'"
+echo "📊 Grafana Dashboards:"
+echo "  - Envoy Retry & Response Code SLI Dashboard"
+echo "  - Access at: http://localhost:3000"
