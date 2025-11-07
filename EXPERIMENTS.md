@@ -16,6 +16,12 @@ This document provides detailed instructions for running experiments to understa
 
 ## Applying Lifecycle Hooks
 
+> [!NOTE] This experiment requires three terminal windows (or) look at Grafana Dashboard for HTTP Errors for customer centric observations.
+>
+> - One for watching the rollout status
+> - One for monitoring pod shutdown logs
+> - One for monitoring EndpointSlice state
+
 Apply lifecycle hooks to the deployment:
 
 ```bash
@@ -47,15 +53,29 @@ This experiment demonstrates how to update the application image and monitor the
 Update the rollout to a new image version:
 
 ```bash
-kubectl argo rollouts set image k8s-web-pool app=kosarajus/monolith:v0.1.2
+kubectl argo rollouts set image k8s-web-pool app=<your-image-location>
 ```
+
+(or)
+
+Update the version annotation in `kustomization.yaml` and apply it
+
+```bash
+kubectl apply -f k8s-app-workload/lifecycle-hooks/after-native-sidecar/
+```
+
+> [!NOTE] Following validation requires three terminal windows (or) look at Grafana Dashboard for HTTP Errors for customer centric observations.
+>
+> - One for watching the rollout status
+> - One for monitoring pod shutdown logs
+> - One for monitoring EndpointSlice state
 
 ### Step 2: Watch the Rollout Progress
 
 In one terminal, watch the rollout status:
 
 ```bash
-kubectl argo rollouts get rollout k8s-web-pool -w
+kubectl argo rollouts get rollout core-web-global -w
 ```
 
 This will show the rollout progress in real-time, including:
@@ -116,9 +136,3 @@ During graceful shutdown, you should observe:
 
 - `ready=false, serving=false, terminating=true` as the pod is being drained
 - The endpoint being removed from the EndpointSlice once draining completes
-
-**Note**: This experiment requires three terminal windows:
-
-1. One for watching the rollout status
-2. One for monitoring pod shutdown logs
-3. One for monitoring EndpointSlice state
