@@ -9,10 +9,9 @@ This directory contains the Envoy-based dataplane service that acts as a gateway
 
 ## Purpose
 
-The platform service serves as an external gateway that:
+The platform service serves as an envoyproxy that:
 
-- Routes traffic to the monolith backend service
-- Provides load balancing across multiple monolith instances
+- Routes traffic to the core-web-global upstream
 - Implements circuit breaking and retry policies
 - Offers health checking and monitoring capabilities
 - Enables zero-downtime deployments by managing traffic flow
@@ -23,7 +22,7 @@ The platform service serves as an external gateway that:
 Internet → LoadBalancer → DataPlane Envoy -> POD's
 ```
 
-![Old Architecture](../images/old-full-architecture.gif "Old Full Architecture")
+![Old Architecture](../../images/new-full-architecture.gif "Old Full Architecture")
 
 ## Usage
 
@@ -31,14 +30,14 @@ Internet → LoadBalancer → DataPlane Envoy -> POD's
 
 ```bash
 cd platform-service
-kubectl apply -k dataplane/
+kubectl apply -k base-manifest
 ```
 
 ### Check Service Status
 
 ```bash
 # Get service details
-kubectl get svc platform-service
+kubectl get svc dataplane-platform-service
 
 # Get pod status
 kubectl get pods -l app.kubernetes.io/component=envoyproxy,app.kubernetes.io/system=platform-service
@@ -52,7 +51,7 @@ curl http://localhost:9901/ready
 
 ```bash
 # Get LoadBalancer IP
-kubectl get svc platform-service
+kubectl get svc dataplane-platform-service
 
 # Test dataplane (replace EXTERNAL-IP with actual IP)
 curl http://EXTERNAL-IP/health
@@ -85,46 +84,17 @@ curl http://localhost:9901/server_info
 curl http://localhost:9901/stats
 ```
 
-### Health Checks
-
-The platform service performs health checks on the backend:
-
-- **Path**: `/health`
-- **Interval**: 10s
-- **Timeout**: 1s
-- **Unhealthy Threshold**: 3
-- **Healthy Threshold**: 2
-
-## Integration with Zero-Downtime Migration
-
-The platform service plays a crucial role in zero-downtime deployments:
-
-1. **Traffic Management**: Routes traffic to healthy backend instances
-2. **Health Monitoring**: Continuously monitors backend health
-3. **Circuit Breaking**: Prevents traffic to unhealthy instances
-4. **Load Balancing**: Distributes load across available instances
-5. **Retry Logic**: Handles temporary failures gracefully
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Backend Unreachable**: Check if monolith service is running
-2. **Health Check Failures**: Verify `/health` endpoint is accessible
-3. **Circuit Breaker Open**: Check backend service health
-4. **DNS Resolution**: Ensure service names are resolvable
-
 ### Debug Commands
 
 ```bash
 # Check dataplane service logs
 kubectl logs -l app.kubernetes.io/component=envoyproxy,app.kubernetes.io/system=platform-service
 
-# Check backend service
-kubectl get svc web-global
+# Check upstream service
+kubectl get svc core-web-global
 
 # Test DNS resolution
-kubectl exec -l app.kubernetes.io/component=envoyproxy,app.kubernetes.io/system=platform-service -- nslookup web-global.default.svc.cluster.local
+kubectl exec -l app.kubernetes.io/component=envoyproxy,app.kubernetes.io/system=platform-service -- nslookup core-web-global.default.svc.cluster.local
 
 # Check Envoy configuration
 kubectl exec -l app.kubernetes.io/component=envoyproxy,app.kubernetes.io/system=platform-service -- curl http://localhost:9901/config_dump

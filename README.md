@@ -215,6 +215,5 @@ kubecon25-zero-downtime/
 - [Kubernetes Native Sidecar Containers](https://kubernetes.io/blog/2023/08/25/native-sidecar-containers/)
 - [Kubernetes Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)
 - [Kustomize Documentation](https://kubectl.docs.kubernetes.io/references/kustomize/)
-- [Envoy Proxy v3 API](https://www.envoyproxy.io/docs/envoy/latest/api-v3/api)
 - [cloud-provider-kind Gateway API Support](https://github.com/kubernetes-sigs/cloud-provider-kind#gateway-api-support-alpha)
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
