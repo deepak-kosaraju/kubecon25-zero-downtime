@@ -41,15 +41,6 @@ Before running the demo, ensure you have the following tools installed:
 
 **Note**: You can also use [minikube](https://minikube.sigs.k8s.io/docs/start/) instead of Kind. Use minikube [ingress addon](https://minikube.sigs.k8s.io/docs/tutorials/nginx_tcp_udp_ingress/) to access your service.
 
-### Quick Setup
-
-Run the setup script to check and install prerequisites:
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
 ## Quick Start
 
 ### 1. Clone the Repository
@@ -57,6 +48,15 @@ chmod +x setup.sh
 ```bash
 git clone <repository-url>
 cd kubecon25-zero-downtime
+```
+
+#### Quick Setup
+
+Run the setup script to check and install prerequisites:
+
+```bash
+chmod +x setup.sh
+./setup.sh
 ```
 
 ### 2. Build the Demo Application
@@ -69,9 +69,37 @@ docker build -t monolith:v0.1.0 .
 cd ..
 ```
 
-**Note**: Make sure to update the image reference in `platform-services/web-app/base-manifest/deployment.yaml` to match your image name.
+**Note**:
 
-### 3. Deploy Everything
+- Make sure to update the image reference in `platform-services/web-app/base-manifest/deployment.yaml` to match your image name.
+
+### 3. Create Kind Cluster
+
+Create the Kind cluster:
+
+```bash
+chmod +x create-kind-cluster.sh
+./create-kind-cluster.sh
+```
+
+This script will:
+
+1. Validate Docker resources (CPU, Memory, Disk)
+2. Check for existing cluster and prompt for deletion if found
+3. Create a Kind cluster named `zero-downtime`
+4. Set and verify kubectl context
+5. Apply node taints for workload placement
+
+> [!NOTE]
+>
+> - The script will prompt you if an existing cluster is found - you can choose to delete it or continue with the existing cluster.
+> - If you aren't using a container registry, load the image into the Kind cluster, if you are using kind cluster skip this step.
+>
+> ```bash
+> kind load docker-image monolith:v0.1.0 --name zero-downtime
+> ```
+
+### 4. Deploy Everything
 
 Run the complete deployment script:
 
@@ -82,7 +110,7 @@ chmod +x deploy-all.sh
 
 This script will:
 
-1. Create a Kind cluster named `zero-downtime` (or use existing if found)
+1. Check for Kind cluster (or create it if missing)
 2. Install Argo Rollouts and KEDA (if not already installed)
 3. Deploy the web application workload with base configuration
 4. Deploy the dataplane service (Envoy edge router)
@@ -90,9 +118,7 @@ This script will:
 6. Deploy the observability stack (Prometheus + Grafana)
 7. **(Optional)** Install cloud-provider-kind and Gateway API for LoadBalancer support
 
-**Note**: The script will prompt you if an existing cluster is found - you can choose to delete it or continue with the existing cluster.
-
-### 4. Verify Deployment
+### 5. Verify Deployment
 
 ```bash
 # Check pod status
@@ -110,33 +136,10 @@ kubectl config current-context
 
 The Envoy proxy is implemented as a native sidecar using `restartPolicy: Always` in init containers. This ensures the sidecar doesn't block pod termination and has proper startup ordering.
 
-**Learn more**: See [ARCHITECTURE.md](ARCHITECTURE.md#native-sidecar-containers)
-
 ### Lifecycle Hooks
 
 - **postStart Hook**: Signals Envoy to accept connections when the app container starts
 - **preStop Hook**: Gracefully drains connections before pod termination
-
-**Learn more**: See [ARCHITECTURE.md](ARCHITECTURE.md#lifecycle-hooks)
-
-### Health Probes
-
-Comprehensive health monitoring for both Envoy and app containers:
-
-- Envoy uses `/ready` endpoint on port 9901
-- App uses `/health` endpoint on port 8000
-
-**Learn more**: See [ARCHITECTURE.md](ARCHITECTURE.md#health-probes)
-
-### Traffic Splitting
-
-Gradual migration from ASG to Kubernetes workloads using Envoy's weighted load balancing:
-
-- 99% ASG, 1% K8s (canary)
-- 50% ASG, 50% K8s (validation)
-- 100% K8s (full migration)
-
-**Learn more**: See [ARCHITECTURE.md](ARCHITECTURE.md#traffic-splitting)
 
 ## Accessing Services
 
@@ -146,7 +149,7 @@ Port-forwarding works immediately without any additional setup:
 
 ```bash
 # Main Application (via Dataplane)
-kubectl port-forward -n default svc/platform-service 8080:80
+kubectl port-forward -n default svc/dataplane-platform-service 8080:80
 # Visit: http://localhost:8080
 
 # Grafana Dashboard
@@ -158,7 +161,7 @@ kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 909
 # Visit: http://localhost:9090
 
 # Envoy Admin Interface (Dataplane)
-kubectl port-forward -n default svc/platform-service 9901:9901
+kubectl port-forward -n default svc/dataplane-platform-service 9901:9901
 # Visit: http://localhost:9901
 ```
 
