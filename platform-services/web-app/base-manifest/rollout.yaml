@@ -15,7 +15,7 @@ spec:
       stableMetadata:
         labels:
           rollouts.zerodt.com/role: stable
-      maxSurge: 50%
+      maxSurge: 20%
       maxUnavailable: 20%
       steps:
         - setWeight: 25
@@ -50,7 +50,7 @@ spec:
         whenUnsatisfiable: DoNotSchedule
       initContainers:
       - name: envoy
-        image: envoyproxy/envoy:v1.34.6
+        image: envoyproxy/envoy:v1.36.2
         restartPolicy: Always
         ports:
         - containerPort: 9211
@@ -135,8 +135,9 @@ spec:
               - sh
               - -c
               - |
-                echo "Sleeping for 30 seconds to allow the app to shutdown gracefully..." > /proc/1/fd/1 2>&1;
-                sleep 30
+                SLEEP_TIME=60
+                echo "Sleeping for $SLEEP_TIME seconds to allow the app to shutdown gracefully..." > /proc/1/fd/1 2>&1;
+                sleep $SLEEP_TIME
         resources:
           limits:
             memory: 400Mi

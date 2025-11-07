@@ -508,9 +508,13 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "dark-red",
+                  "fixedColor": "light-red",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -526,6 +530,10 @@
                   "fixedColor": "super-light-yellow",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -556,6 +564,10 @@
                   "fixedColor": "semi-dark-yellow",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -571,6 +583,10 @@
                   "fixedColor": "dark-orange",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -586,21 +602,10 @@
                   "fixedColor": "light-orange",
                   "mode": "fixed"
                 }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "304"
-            },
-            "properties": [
+              },
               {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-green",
-                  "mode": "fixed"
-                }
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -634,7 +639,7 @@
               },
               {
                 "id": "custom.gradientMode",
-                "value": "none"
+                "value": "scheme"
               }
             ]
           }
@@ -1625,5 +1630,5 @@
   "timezone": "",
   "title": "Envoy Retry & Response Code SLI Dashboard",
   "uid": "envoy-retry-response-code-sli",
-  "version": 10
+  "version": 12
 }

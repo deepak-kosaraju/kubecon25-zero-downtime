@@ -16,20 +16,17 @@ spec:
       stableMetadata:
         labels:
           rollouts.zerodt.com/role: stable
-      maxSurge: 20%
-      maxUnavailable: 20%
+      maxSurge: 50%
+      maxUnavailable: 50%
       steps:
-        - setWeight: 25
-        - pause: { duration: 10 }
         - setWeight: 50
-        - pause: { duration: 5 }
-        - setWeight: 75
+        - pause: { duration: 15 }
         - setWeight: 100
   template:
     spec:
       containers:
       - name: envoy
-        image: envoyproxy/envoy:v1.34.6
+        image: envoyproxy/envoy:v1.36.2
         ports:
         - containerPort: 80
           name: http
