@@ -22,7 +22,6 @@ spec:
         - pause: { duration: 10 }
         - setWeight: 50
         - pause: { duration: 5 }
-        - setWeight: 75
         - setWeight: 100
   template:
     spec:
@@ -35,11 +34,11 @@ spec:
                 operator: In
                 values:
                 - ondemand
-      tolerations:
-      - effect: NoSchedule
-        key: dedicated-web
-        operator: Equal
-        value: "true"
+      # tolerations:
+      # - effect: NoSchedule
+      #   key: dedicated-web
+      #   operator: Equal
+      #   value: "true"
       topologySpreadConstraints:
       - labelSelector:
           matchLabels:
@@ -98,8 +97,8 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
         - name: WEB_CONCURRENCY
-          value: "1"
-        image: kosarajus/monolith:v0.1.10
+          value: "4"
+        image: kosarajus/monolith:v0.1.11
         imagePullPolicy: IfNotPresent
         name: app
         ports:
@@ -135,7 +134,7 @@ spec:
               - sh
               - -c
               - |
-                SLEEP_TIME=60
+                SLEEP_TIME=30
                 echo "Sleeping for $SLEEP_TIME seconds to allow the app to shutdown gracefully..." > /proc/1/fd/1 2>&1;
                 sleep $SLEEP_TIME
         resources:

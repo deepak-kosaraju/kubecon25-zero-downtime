@@ -6,7 +6,7 @@ resources:
 - ../../base-manifest
 
 commonAnnotations:
-  app.zerodt.com/version: graceful-shutdown
+  app.zerodt.com/version: graceful-zero-downtime
 
 patches:
 # - path: deployment-patch.yaml

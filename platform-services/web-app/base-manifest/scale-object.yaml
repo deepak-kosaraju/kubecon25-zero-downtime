@@ -10,7 +10,7 @@ spec:
     kind: Rollout
     name: core-web-global
   minReplicaCount: 4
-  maxReplicaCount: 10
+  maxReplicaCount: 4
   fallback:
     failureThreshold: 3
     replicas: 8
@@ -19,7 +19,7 @@ spec:
     horizontalPodAutoscalerConfig:
       behavior:
         scaleDown:
-          stabilizationWindowSeconds: 15
+          stabilizationWindowSeconds: 60
           policies:
             - type: Percent
               value: 20
@@ -31,7 +31,12 @@ spec:
   - type: prometheus
     metadata:
       serverAddress: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
-      threshold: '1'
-      query: sum(avg_over_time(envoy_cluster_upstream_cx_active{envoy_cluster_name="core-web-global"}[1m]))
+      threshold: '2.5'
+      query: avg(envoy_cluster_upstream_cx_active{envoy_cluster_name="core-web-global"})
     metricType: Value
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: '50'
+      containerName: app
   

@@ -41,14 +41,14 @@ async def lifespan(app: FastAPI):
             status.update(f"[bold blue] Worker {WORKER_ID} - Initializing {initializer}...")
             init_start_time = time.time()
             if initializer != "databases":
-                await asyncio.sleep(10)
+                await asyncio.sleep(random.randrange(1,5))
             else:
-                await asyncio.sleep(25)
+                await asyncio.sleep(random.randrange(5,10))
             console.log(f"[bold green]Worker {WORKER_ID} - Initialized {initializer} in {time.time() - init_start_time:.2f} seconds.")
         status.update(
             f"[bold blue]Worker {WORKER_ID} - Initializing Background Task and Resource Acquisition"
         )
-        _final_sleep = random.randrange(15)
+        _final_sleep = random.randrange(1,5)
         await asyncio.sleep(_final_sleep)  # Simulate max of 40 seconds of delay
         console.log(f"[bold green]Worker {WORKER_ID} - Initialized Background Task and Resource Acquisition in {_final_sleep:.2f} seconds.")
     console.log(f"Application startup complete (Worker {WORKER_ID}): Resources initialized in [bold blue]{time.time() - start_time:.2f} seconds.")
@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
         status.update(
             f"[bold blue]Worker {WORKER_ID} - Cleaning up resources"
         )
-        await asyncio.sleep(25)
+        await asyncio.sleep(random.randrange(5,15))
     console.log(f"[bold green]Worker {WORKER_ID} - Application shutdown complete: Resources cleaned up in {time.time() - start_time:.2f} seconds.")
 
 app = FastAPI(

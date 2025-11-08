@@ -97,6 +97,3 @@ http://172.18.0.6/status/400
 http://172.18.0.6/status/401
 http://172.18.0.6/status/403
 http://172.18.0.6/status/408
-http://172.18.0.6/status/301
-http://172.18.0.6/status/304
-http://172.18.0.6/status/302

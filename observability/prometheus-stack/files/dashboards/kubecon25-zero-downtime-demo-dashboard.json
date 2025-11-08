@@ -470,12 +470,12 @@
               },
               {
                 "id": "custom.pointSize",
-                "value": 14
+                "value": 1
               },
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "dark-blue",
+                  "fixedColor": "blue",
                   "mode": "fixed"
                 }
               },
@@ -508,13 +508,9 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "light-red",
+                  "fixedColor": "dark-red",
                   "mode": "fixed"
                 }
-              },
-              {
-                "id": "custom.gradientMode",
-                "value": "none"
               }
             ]
           },
@@ -530,10 +526,6 @@
                   "fixedColor": "super-light-yellow",
                   "mode": "fixed"
                 }
-              },
-              {
-                "id": "custom.gradientMode",
-                "value": "none"
               }
             ]
           },
@@ -564,10 +556,6 @@
                   "fixedColor": "semi-dark-yellow",
                   "mode": "fixed"
                 }
-              },
-              {
-                "id": "custom.gradientMode",
-                "value": "none"
               }
             ]
           },
@@ -583,10 +571,6 @@
                   "fixedColor": "dark-orange",
                   "mode": "fixed"
                 }
-              },
-              {
-                "id": "custom.gradientMode",
-                "value": "none"
               }
             ]
           },
@@ -602,10 +586,21 @@
                   "fixedColor": "light-orange",
                   "mode": "fixed"
                 }
-              },
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "304"
+            },
+            "properties": [
               {
-                "id": "custom.gradientMode",
-                "value": "none"
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -639,7 +634,7 @@
               },
               {
                 "id": "custom.gradientMode",
-                "value": "scheme"
+                "value": "none"
               }
             ]
           }
@@ -809,7 +804,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[5m])) by (le, envoy_cluster_name))",
+          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[1m])) by (le, envoy_cluster_name))",
           "hide": false,
           "interval": "",
           "legendFormat": "{{envoy_cluster_name}} 99%",
@@ -822,7 +817,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[5m])) by (le,envoy_cluster_name))",
+          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[1m])) by (le,envoy_cluster_name))",
           "hide": false,
           "interval": "",
           "legendFormat": "{{envoy_cluster_name}} 95%",
@@ -835,7 +830,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[5m])) by (le,envoy_cluster_name))",
+          "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[1m])) by (le,envoy_cluster_name))",
           "hide": false,
           "interval": "",
           "legendFormat": "{{envoy_cluster_name}} 50%",
@@ -981,7 +976,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avg(rate(envoy_cluster_upstream_rq_total[1m])) by (envoy_cluster_name)",
+          "expr": "avg(rate(envoy_cluster_upstream_rq_total[30s])) by (envoy_cluster_name)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1027,7 +1022,7 @@
               "fill": "solid"
             },
             "lineWidth": 4,
-            "pointSize": 13,
+            "pointSize": 1,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -1051,8 +1046,12 @@
                 "value": 0
               },
               {
+                "color": "#EAB839",
+                "value": 2
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 3
               }
             ]
           }
@@ -1132,6 +1131,19 @@
           "legendFormat": "__auto",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg(envoy_listener_downstream_cx_active)",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "core-web-global-downstream",
+          "range": true,
+          "refId": "A"
         }
       ],
       "title": "avg: Connections Active",
@@ -1285,12 +1297,26 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"dataplane-web-global\"}[1m])) / sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=\"dataplane-web-global\"}[1m])) * 100",
+          "expr": "100 *\n(\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_retry[10m])\n  )\n  /\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_total[10m])\n  )\n)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total[5m]))",
+          "hide": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
         }
       ],
       "title": "% Total Retries",
@@ -1360,7 +1386,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": [
           {
@@ -1431,7 +1457,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_retry_success{envoy_cluster_name=\"dataplane-web-global\"}[1m])) / sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_retry{envoy_cluster_name=\"dataplane-web-global\"}[1m])) * 100",
+          "expr": "sum by (envoy_cluster_name) (\n  rate(envoy_cluster_upstream_rq_retry_success[5m])\n)\n/\nsum by (envoy_cluster_name) (\n  rate(envoy_cluster_upstream_rq_retry[5m]) + 0.0001\n)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1577,7 +1603,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"dataplane-web-global\"}[1m])) ",
+          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_retry_limit_exceeded{envoy_cluster_name=\"dataplane-web-global\"}[5m])) ",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1630,5 +1656,5 @@
   "timezone": "",
   "title": "Envoy Retry & Response Code SLI Dashboard",
   "uid": "envoy-retry-response-code-sli",
-  "version": 12
+  "version": 16
 }

@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- ../../base-manifest
+- ../base-manifest
 
 commonAnnotations:
   app.zerodt.com/version: before-native-sidecar-v2

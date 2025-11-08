@@ -20,7 +20,7 @@ spec:
       maxUnavailable: 50%
       steps:
         - setWeight: 50
-        - pause: { duration: 15 }
+        - pause: { duration: 10 }
         - setWeight: 100
   template:
     spec:

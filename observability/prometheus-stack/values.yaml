@@ -23,15 +23,22 @@ kube-prometheus-stack:
       ruleSelectorNilUsesHelmValues: false
       
       # Using PodMonitor resources for dynamic discovery instead of additionalScrapeConfigs
-
+      replicas: 2
       # Resource limits
       resources:
         requests:
-          memory: 512Mi
-          cpu: 100m
-        limits:
           memory: 1Gi
-          cpu: 500m
+          cpu: 75m
+        limits:
+          memory: 2Gi
+      ## Storage configuration
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 1Gi
       
       ## If specified, the pod's topology spread constraints.
       # topologySpreadConstraints:
@@ -108,7 +115,7 @@ kube-prometheus-stack:
     # Dashboard configmaps
     dashboardsConfigMaps:
       envoy: "kubecon25-zero-downtime-demo"
-
+    replicas: 2
     # Resource limits
     resources:
       requests:
