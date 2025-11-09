@@ -10,7 +10,7 @@ spec:
     kind: Rollout
     name: core-web-global
   minReplicaCount: 4
-  maxReplicaCount: 4
+  maxReplicaCount: 10
   fallback:
     failureThreshold: 3
     replicas: 8

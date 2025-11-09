@@ -98,7 +98,7 @@ spec:
               fieldPath: spec.nodeName
         - name: WEB_CONCURRENCY
           value: "4"
-        image: kosarajus/monolith:v0.1.11
+        image: kosarajus/monolith:slow-startup
         imagePullPolicy: IfNotPresent
         name: app
         ports:

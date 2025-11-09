@@ -1297,7 +1297,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "100 *\n(\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_retry[10m])\n  )\n  /\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_total[10m])\n  )\n)",
+          "expr": "100 *\n(\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_retry[5m])\n  )\n  /\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_total[5m])\n  )\n)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1656,5 +1656,5 @@
   "timezone": "",
   "title": "Envoy Retry & Response Code SLI Dashboard",
   "uid": "envoy-retry-response-code-sli",
-  "version": 16
+  "version": 18
 }

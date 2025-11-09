@@ -13,5 +13,5 @@ spec:
   podMetricsEndpoints:
   - port: envoy-admin
     path: /stats/prometheus
-    interval: 15s
-    scrapeTimeout: 10s
+    interval: 3s
+    scrapeTimeout: 2s

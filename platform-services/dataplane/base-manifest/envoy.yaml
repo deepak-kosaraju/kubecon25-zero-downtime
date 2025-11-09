@@ -3,7 +3,7 @@ admin:
     socket_address:
       address: 0.0.0.0
       port_value: 9901
-
+stats_flush_on_admin: true
 static_resources:
   listeners:
     - address:
