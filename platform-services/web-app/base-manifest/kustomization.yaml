@@ -26,7 +26,7 @@ commonAnnotations:
   app.zerodt.com/component: web
   app.zerodt.com/system: platform-service
   app.zerodt.com/id: core-web
-  app.zerodt.com/version: base-503-errors
+  app.zerodt.com/version: base
 namePrefix:
   core-
 

@@ -15,3 +15,7 @@ spec:
     path: /stats/prometheus
     interval: 3s
     scrapeTimeout: 2s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_phase]
+      action: keep
+      regex: "Running|Terminating"

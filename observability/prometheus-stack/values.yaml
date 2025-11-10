@@ -17,11 +17,26 @@ kube-prometheus-stack:
       # type: LoadBalancer
       # externalTrafficPolicy: Local
     prometheusSpec:
-      # Enable Prometheus to scrape metrics from all namespaces
-      serviceMonitorSelectorNilUsesHelmValues: false
-      podMonitorSelectorNilUsesHelmValues: false
+      ## If false, a nil or {} values means select all namespaces
       ruleSelectorNilUsesHelmValues: false
-      
+      ruleNamespaceSelector: {}
+      ruleSelector: {}
+
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      serviceMonitorNamespaceSelector: {}
+
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelector: {}
+      podMonitorNamespaceSelector: {}
+
+      probeSelectorNilUsesHelmValues: true
+      probeSelector: {}
+      probeNamespaceSelector: {}
+
+      # ScrapeConfig is a low level resource; that's why its scoped only to Prometheus' namespace.
+      scrapeConfigSelectorNilUsesHelmValues: true
+
       # Using PodMonitor resources for dynamic discovery instead of additionalScrapeConfigs
       replicas: 2
       # Resource limits

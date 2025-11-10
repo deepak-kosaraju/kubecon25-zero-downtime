@@ -13,3 +13,4 @@ spec:
   - name: admin
     port: 9901
     targetPort: envoy-admin
+
