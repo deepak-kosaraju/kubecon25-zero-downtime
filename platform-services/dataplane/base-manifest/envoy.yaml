@@ -85,7 +85,7 @@ static_resources:
       max_requests_per_connection: 25000
       max_connection_duration: 3600s
       # This helps upstream that properly terminate/drain/rotate do this faster as downstream (this Envoy) will close the connection after the idle timeout.
-      idle_timeout: 15s
+      idle_timeout: 55s
     upstream_connection_options:
       tcp_keepalive:
         keepalive_time: 15 # start probes after 15s idle

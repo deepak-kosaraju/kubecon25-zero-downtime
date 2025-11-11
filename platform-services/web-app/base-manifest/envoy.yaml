@@ -21,7 +21,7 @@ static_resources:
           # dataplane is configured with 10s idleTimeout so adding 5s as buffer to ensure downstream always cleanup first.
           # If you update this revisit the terminationGracePeriodSeconds in the web spec.
           common_http_protocol_options:
-            idle_timeout: 15s
+            idle_timeout: 60s
           access_log:
             - name: envoy.file_access_log
               typed_config:

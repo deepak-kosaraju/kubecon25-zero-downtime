@@ -92,9 +92,17 @@ In another terminal, monitor the shutdown sequence for any pod that is terminati
 while true; do
   POD_NAME=$(kubectl get pods -l app.kubernetes.io/component=web -o json | jq -r '.items[] | select(.metadata.deletionTimestamp != null) | .metadata.name' | head -1)
   [ -n "$POD_NAME" ] && echo -e "\n ---- $POD_NAME ----\n"
-  kubectl logs -f $POD_NAME --since 1m -c app 2>/dev/null | egrep -iB1 'PreStop|SIGTERM|term|shut|finished|clean'
+  kubectl logs -f $POD_NAME --since 1m -c app 2>/dev/null | egrep -iB1 'PreStop|SIGTERM'
   sleep 2
 done
+
+## To tail envoy container logs - in cae you like to look at access log for 5xx
+# while true; do
+#   POD_NAME=$(kubectl get pods -l app.kubernetes.io/component=web -o json | jq -r '.items[] | select(.metadata.deletionTimestamp != null) | .metadata.name' | head -1)
+#   [ -n "$POD_NAME" ] && echo -e "\n ---- $POD_NAME ----\n"
+#   kubectl logs -f $POD_NAME --since 1m -c envoy 2>/dev/null | egrep -i '"response_code":5..,'
+#   sleep 2
+# done
 ```
 
 This command will:
