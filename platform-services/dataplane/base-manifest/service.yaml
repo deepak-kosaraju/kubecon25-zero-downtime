@@ -11,7 +11,7 @@ spec:
     port: 80
     targetPort: http
     protocol: TCP
-  - name: admin
+  - name: envoy-admin
     port: 9901
     targetPort: envoy-admin
     protocol: TCP

@@ -5,9 +5,9 @@
   path: /spec/strategy/canary/maxUnavailable
   value: 20%
 # # # optimized boot time by unwrapping the black box monolith to fit the modern infrastructure dynamics
-# - op: replace
-#   path: /spec/template/spec/containers/0/image
-#   value: kosarajus/monolith:improved-startup
+- op: replace
+  path: /spec/template/spec/containers/0/image
+  value: kosarajus/monolith:improved-startup
 
 # Signal Envoy to accept new connections. This is in case only `app` container was terminated and not the whole pod,
 # so we need to reverse the the /healthcheck/fail done in the preStop hook.
@@ -31,7 +31,7 @@
   # 5. ... Kubernetes will then send SIGTERM to the `app` container (and all other containers will follow if it's the whole pod is being terminated).
   # Note #1: We wait 2 seconds initially, then monitor connections until they remain at zero for 3 consecutive seconds to ensure stable draining.
   # Note #2: `preStop` is triggered NOT only when the whole pod is terminated...but even the individual container is terminated (e.g due to failing liveness check), so always be cautious when changing/modifying *OTHER* containers  using `preStop` hooks.
-  #           For example, in this preStop we modify `envoy` container, so envoy will not accept new connections unless also `envoy` is restarted or the preStop hook flipping it ON again...
+  #  For example, in this preStop we modify `envoy` container, so envoy will not accept new connections unless also `envoy` is restarted or the preStop hook flipping it ON again...
   # ----
   # ⚠️ Do not change these values unless you understand the shutdown sequence and the implications of changing it.
 - op: add

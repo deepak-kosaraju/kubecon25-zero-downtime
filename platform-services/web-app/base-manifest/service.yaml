@@ -10,7 +10,7 @@ spec:
   - name: http
     port: 80
     targetPort: envoy
-  - name: admin
+  - name: envoy-admin
     port: 9901
     targetPort: envoy-admin
 

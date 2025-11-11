@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dataplane-envoy
+  namespace: default
+  labels:
+    app.kubernetes.io/component: envoyproxy
+    app.kubernetes.io/system: platform-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: envoyproxy
+      app.kubernetes.io/system: platform-service
+  namespaceSelector:
+    matchNames:
+    - default
+  endpoints:
+  - port: envoy-admin
+    path: /stats/prometheus
+    interval: 3s
+    scrapeTimeout: 2s
+    relabelings:
+      # Copy pod name from endpoint metadata
+      - sourceLabels: [__meta_kubernetes_pod_name]
+        targetLabel: pod
+      # Copy namespace
+      - sourceLabels: [__meta_kubernetes_namespace]
+        targetLabel: namespace
+      # Copy instance (IP:port)
+      - sourceLabels: [__address__]
+        targetLabel: instance
+  serviceDiscoveryRole: EndpointSlice

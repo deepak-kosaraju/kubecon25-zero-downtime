@@ -34,15 +34,15 @@ echo "⏳ Waiting for Grafana to be ready..."
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=grafana -n monitoring --timeout=300s
 
 # Apply PodMonitor resources
-echo "📊 Applying PodMonitor resources..."
-kubectl apply -f podmonitors/
+echo "📊 Applying ServiceMonitor resources..."
+kubectl apply -f servicemonitors
 
 # Wait for PodMonitor resources to be created
-echo "⏳ Waiting for PodMonitor resources to be created..."
+echo "⏳ Waiting for ServiceMonitor resources to be created..."
 sleep 10
 
-# Verify PodMonitor targets are discovered
-echo "🔍 Verifying PodMonitor targets are discovered..."
+# Verify ServiceMonitor targets are discovered
+echo "🔍 Verifying ServiceMonitor targets are discovered..."
 echo "Checking Prometheus targets..."
 
 # Get Prometheus pod name
