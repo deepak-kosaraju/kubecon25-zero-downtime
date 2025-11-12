@@ -5,9 +5,9 @@
   path: /spec/strategy/canary/maxUnavailable
   value: 20%
 # # # optimized boot time by unwrapping the black box monolith to fit the modern infrastructure dynamics
-- op: replace
-  path: /spec/template/spec/containers/0/image
-  value: kosarajus/monolith:improved-startup
+# - op: replace
+#   path: /spec/template/spec/containers/0/image
+#   value: kosarajus/monolith:improved-startup
 
 # Signal Envoy to accept new connections. This is in case only `app` container was terminated and not the whole pod,
 # so we need to reverse the the /healthcheck/fail done in the preStop hook.

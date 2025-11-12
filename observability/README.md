@@ -61,8 +61,8 @@ kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
 
 The Prometheus configuration includes specific scrape jobs for:
 
-- `routing-envoy-metrics`: Edge routing Envoy metrics
-- `web-envoy-metrics`: Application Envoy metrics  
+- `servicemonitor/dataplane-metrics.yaml`: Dataplane envoy metrics
+- `servicemonitor/web-metrics`: For envoy sidecar metrics in app POD.
 
 ## 🔍 Troubleshooting
 

@@ -805,7 +805,7 @@
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"$ClusterName\"}[1m])) by (le, envoy_cluster_name))",
-          "hide": false,
+          "hide": true,
           "interval": "",
           "legendFormat": "{{envoy_cluster_name}} 99%",
           "range": true,
@@ -904,8 +904,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "reqps"
+          }
         },
         "overrides": [
           {
@@ -976,7 +975,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avg(rate(envoy_cluster_upstream_rq_total[30s])) by (envoy_cluster_name)",
+          "expr": "sum(increase(envoy_cluster_upstream_rq_total[1m])) by (envoy_cluster_name)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -984,7 +983,7 @@
           "refId": "B"
         }
       ],
-      "title": "sum: Total rq",
+      "title": "Total rq over time Interval",
       "transparent": true,
       "type": "timeseries"
     },
@@ -1139,7 +1138,7 @@
           },
           "editorMode": "code",
           "expr": "avg(envoy_listener_downstream_cx_active)",
-          "hide": false,
+          "hide": true,
           "instant": false,
           "legendFormat": "core-web-global-downstream",
           "range": true,
@@ -1151,12 +1150,174 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 27,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 4,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "core-web-global"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dataplane-web-global"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 5
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "hue"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 38,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "avg by (envoy_cluster_name) (rate(envoy_cluster_upstream_cx_connect_fail[5m]))",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Upstream Connect Failed: {{envoy_cluster_name}} ",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg by (envoy_cluster_name) (envoy_cluster_upstream_rq_pending_active)",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "rq Pending Active: {{envoy_cluster_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "avg: Upstream - Connect Failed vs Pending Active",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 38
       },
       "id": 22,
       "panels": [],
@@ -1273,7 +1434,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 39
       },
       "id": 35,
       "options": {
@@ -1297,26 +1458,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "100 *\n(\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_retry[5m])\n  )\n  /\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_total[5m])\n  )\n)",
+          "expr": "100 *\n(\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_retry[10m])\n  )\n  /\n  sum by (envoy_cluster_name) (\n    increase(envoy_cluster_upstream_rq_total[10m])\n  )\n)",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total[5m]))",
-          "hide": true,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
         }
       ],
       "title": "% Total Retries",
@@ -1433,7 +1580,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 30
+        "y": 39
       },
       "id": 36,
       "options": {
@@ -1579,7 +1726,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 30
+        "y": 39
       },
       "id": 37,
       "options": {
@@ -1656,5 +1803,5 @@
   "timezone": "",
   "title": "Envoy Retry & Response Code SLI Dashboard",
   "uid": "envoy-retry-response-code-sli",
-  "version": 18
+  "version": 19
 }

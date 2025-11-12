@@ -139,10 +139,10 @@ spec:
                 sleep $SLEEP_TIME
         resources:
           limits:
-            memory: 400Mi
+            memory: 300Mi
           requests:
             cpu: 100m
-            memory: 200Mi
+            memory: 250Mi
       hostAliases:
       - hostnames:
         - webapp

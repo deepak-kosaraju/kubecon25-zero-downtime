@@ -10,8 +10,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: web
-      app.kubernetes.io/system: platform-service
+      app.kubernetes.io/name: core-web-global
   namespaceSelector:
     matchNames:
     - default

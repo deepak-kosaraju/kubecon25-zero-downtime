@@ -1,0 +1,99 @@
+# Company endpoints (high frequency - dashboard loads)
+http://localhost:8080/companies
+http://localhost:8080/companies/1001
+http://localhost:8080/companies/1002
+http://localhost:8080/companies/1003
+http://localhost:8080/companies/1004
+http://localhost:8080/companies/1005
+http://localhost:8080/companies/1006
+http://localhost:8080/companies/1007
+http://localhost:8080/companies/1008
+http://localhost:8080/companies/1009
+http://localhost:8080/companies/1010
+
+
+# Company projects (medium frequency - project selection)
+http://localhost:8080/companies/1001/projects
+http://localhost:8080/companies/1002/projects
+http://localhost:8080/companies/1003/projects
+http://localhost:8080/companies/1004/projects
+http://localhost:8080/companies/1005/projects
+http://localhost:8080/companies/1006/projects
+http://localhost:8080/companies/1007/projects
+http://localhost:8080/companies/1008/projects
+http://localhost:8080/companies/1009/projects
+http://localhost:8080/companies/1010/projects
+http://localhost:8080/companies/1011/projects
+http://localhost:8080/companies/1012/projects
+
+# Project endpoints (high frequency - project details)
+http://localhost:8080/projects
+http://localhost:8080/projects/2001
+http://localhost:8080/projects/2002
+http://localhost:8080/projects/2003
+http://localhost:8080/projects/2004
+http://localhost:8080/projects/2005
+http://localhost:8080/projects/2006
+http://localhost:8080/projects/2007
+http://localhost:8080/projects/2008
+
+# Short sleep endpoints (likely to succeed quickly)
+http://localhost:8080/sleep/0.1
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.1
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.1
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.3
+http://localhost:8080/sleep/0.4
+http://localhost:8080/sleep/0.1
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.2
+http://localhost:8080/sleep/0.3
+http://localhost:8080/sleep/0.4
+
+# Medium sleep endpoints (may trigger retries)
+http://localhost:8080/sleep/0.5
+http://localhost:8080/sleep/0.6
+
+# Longer sleep endpoints (likely to trigger retries)
+http://localhost:8080/sleep/1.0
+
+# More Longer Sleep Endpoints (hold active connection longer - reports etc..)
+http://localhost:8080/sleep/10
+http://localhost:8080/sleep/5
+
+
+# Project filtering (realistic query parameters)
+http://localhost:8080/projects?company_id=1001
+http://localhost:8080/projects?company_id=1002
+http://localhost:8080/projects?company_id=1001
+http://localhost:8080/projects?company_id=1002
+http://localhost:8080/projects?company_id=1002
+
+
+# Error simulation (for testing error handling)
+http://localhost:8080/status/500
+http://localhost:8080/status/400
+http://localhost:8080/status/401
+http://localhost:8080/status/403
+http://localhost:8080/status/408

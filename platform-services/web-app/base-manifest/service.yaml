@@ -13,4 +13,22 @@ spec:
   - name: envoy-admin
     port: 9901
     targetPort: envoy-admin
-
+---
+# following headless service is used for the envoy to discover by observability/servicemonitor/web-metrics.yaml to configure scraping of envoy metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-global-headless
+  labels:
+    app.kubernetes.io/name: core-web-global-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/system: platform-service
+  publishNotReadyAddresses: true
+  ports:
+  - name: envoy-admin
+    port: 9901
+    targetPort: envoy-admin

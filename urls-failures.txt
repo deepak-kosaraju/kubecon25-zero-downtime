@@ -1,5 +1,0 @@
-# Error simulation (for testing error handling)
-http://172.18.0.7/status/500
-http://172.18.0.7/status/401
-http://172.18.0.7/status/403
-http://172.18.0.7/status/408
