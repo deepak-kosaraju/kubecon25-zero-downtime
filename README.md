@@ -1,6 +1,20 @@
-# KubeCon 2025 Zero-Downtime Migration Demo
+# [KubeCon 2025 Zero-Downtime Migration Demo](https://kccncna2025.sched.com/event/27FXj/zero-downtime-migration-of-monolith-to-k8s-using-sidecar-and-container-lifecycle-hooks-deepak-kosaraju-james-dabbs-procore)
 
 This project demonstrates zero-downtime migration techniques using Kubernetes native sidecar containers, lifecycle hooks, and graceful connection draining.
+
+## KubeCon NA 2025 Talk in Youtube: [Zero Downtime Migration of Monolith To K8s](https://www.youtube.com/watch?v=jR6Oex3wFCE)
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Key Concepts](#key-concepts)
+- [Accessing Services](#accessing-services)
+- [Documentation](#documentation)
+- [Project Structure](#project-structure)
+- [References](#references)
 
 ## Overview
 
@@ -12,16 +26,15 @@ This demo showcases how to achieve zero-downtime deployments using:
 - **Traffic Splitting**: Gradual migration from ASG to Kubernetes workloads
 - **Observability**: Prometheus and Grafana for monitoring and metrics
 
-## Table of Contents
+## Architecture
 
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Key Concepts](#key-concepts)
-- [Accessing Services](#accessing-services)
-- [Documentation](#documentation)
-- [Project Structure](#project-structure)
-- [References](#references)
+### Current
+
+![Current Architecture](images/new-full-architecture.gif "Current Full Architecture")
+
+### Future
+
+![Future Architecture](images/future-full-architecture.gif "Future Full Architecture")
 
 ## Prerequisites
 
